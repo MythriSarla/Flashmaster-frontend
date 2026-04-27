@@ -8,15 +8,21 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    try {
-      const { data } = await API.post("/auth/login", { email, password });
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
-    } catch {
-      alert("Login failed");
-    }
-  };
+  try {
+    const { data } = await API.post("/auth/login", { email, password });
 
+    console.log("LOGIN RESPONSE:", data); // 👈 ADD THIS
+
+    localStorage.setItem("token", data.token);
+
+    console.log("TOKEN SAVED:", localStorage.getItem("token")); // 👈 ADD THIS
+
+    navigate("/dashboard");
+  } catch (err) {
+    console.log("LOGIN ERROR:", err.response?.data || err.message);
+    alert("Login failed");
+  }
+};
   return (
     <div style={{ padding: 40 }}>
       <h2>Login</h2>
