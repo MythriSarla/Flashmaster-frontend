@@ -1,11 +1,8 @@
 import axios from 'axios';
-
-const API = axios.create({ baseURL: 'http://localhost:8000/api' });
-
+const API = axios.create({ baseURL: 'https://flashmaster-backened-1.onrender.com/api' });
 API.interceptors.request.use(req => {
   const token = localStorage.getItem('token');
   if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
-
 export default API;
