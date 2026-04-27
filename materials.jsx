@@ -41,7 +41,6 @@ export default function Materials() {
       fd.append('topic', topic);
       if (file) fd.append('file', file);
 
-      // ❗ IMPORTANT: no headers here
       await API.post('/materials', fd);
 
       setMsg('Material uploaded successfully!');
@@ -52,8 +51,11 @@ export default function Materials() {
 
     } catch (err) {
       setLoading(false);
-      setMsg(err.response?.data?.error || err.message);
-console.log(err.response?.data);
+
+      console.log("FULL ERROR:", err);
+      console.log("BACKEND ERROR:", err.response?.data);
+
+      setMsg(err.response?.data?.error || err.response?.data?.msg || "Upload failed");
     }
   };
 
