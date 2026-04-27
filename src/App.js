@@ -7,6 +7,7 @@ import Flashcards from './pages/Flashcards';
 import Materials  from './pages/Materials';
 import StudyPlan  from './pages/StudyPlan';
 import Progress   from './pages/Progress';
+import Admin      from './pages/Admin';
 
 const isLoggedIn = () => !!localStorage.getItem('token');
 
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/flashcards" element={<PrivateRoute><Flashcards /></PrivateRoute>} />
         <Route path="/plan"       element={<PrivateRoute><StudyPlan /></PrivateRoute>} />
         <Route path="/progress"   element={<PrivateRoute><Progress /></PrivateRoute>} />
+        <Route path="/admin"      element={<PrivateRoute><Admin /></PrivateRoute>} />
       </Routes>
     </BrowserRouter>
   );
