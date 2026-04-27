@@ -1,12 +1,13 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from "./pages/login";
-import Register from "./pages/register";
-import Dashboard from "./pages/dashboard";
-import Flashcards from "./pages/flashcards";
-import Materials from "./pages/materials";
-import StudyPlan from "./pages/studyplan";
-import Progress from "./pages/progress";
+import Login      from './pages/Login';
+import Register   from './pages/Register';
+import Dashboard  from './pages/Dashboard';
+import Flashcards from './pages/Flashcards';
+import Materials  from './pages/Materials';
+import StudyPlan  from './pages/StudyPlan';
+import Progress   from './pages/Progress';
+
 const isLoggedIn = () => !!localStorage.getItem('token');
 
 function PrivateRoute({ children }) {

@@ -35,6 +35,8 @@ export default function Materials() {
       });
       setMsg('Material uploaded successfully!');
       setLoading(false);
+      setForm({ subject: '', title: '', topic: '' });
+      setFile(null);
       fetchMaterials();
     } catch (err) {
       setLoading(false);
@@ -46,6 +48,26 @@ export default function Materials() {
     if (window.confirm('Are you sure you want to delete this material?')) {
       await API.delete(`/materials/${id}`);
       fetchMaterials();
+    }
+  };
+
+  const handleView = (m) => {
+    const url = m.fileUrl;
+    if (!url) { alert('No file available'); return; }
+
+    if (m.fileType === 'application/pdf') {
+      // ✅ Use PDF.js viewer — works with any URL
+      const pdfViewer = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(url)}`;
+      window.open(pdfViewer, '_blank');
+    } else if (
+      m.fileType?.includes('powerpoint') ||
+      m.fileType?.includes('presentation') ||
+      m.fileType?.includes('word') ||
+      m.fileType?.includes('document')
+    ) {
+      window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
+    } else {
+      window.open(url, '_blank');
     }
   };
 
@@ -66,51 +88,23 @@ export default function Materials() {
         <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
       </div>
 
-      {/* Upload Box */}
       <div style={styles.uploadBox}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#1a1a2e' }}>Upload New Material</h3>
-        <input
-          style={styles.input}
-          placeholder="Subject (e.g. Data Structures)"
-          onChange={e => setForm({...form, subject: e.target.value})}
-        />
-        <input
-          style={styles.input}
-          placeholder="Title (e.g. Linked List Notes)"
-          onChange={e => setForm({...form, title: e.target.value})}
-        />
-        <input
-          style={styles.input}
-          placeholder="Topic (optional)"
-          onChange={e => setForm({...form, topic: e.target.value})}
-        />
-        <input
-          type="file"
-          style={{ marginBottom: 14, fontSize: 13 }}
-          onChange={e => setFile(e.target.files[0])}
-          accept=".pdf,.txt,.docx,.pptx,.png,.jpg,.jpeg"
-        />
-        <button
-          style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }}
-          onClick={handleUpload}
-          disabled={loading}
-        >
+        <input style={styles.input} placeholder="Subject (e.g. Data Structures)" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} />
+        <input style={styles.input} placeholder="Title (e.g. Linked List Notes)"  value={form.title}   onChange={e => setForm({...form, title: e.target.value})} />
+        <input style={styles.input} placeholder="Topic (optional)"                value={form.topic}   onChange={e => setForm({...form, topic: e.target.value})} />
+        <input type="file" style={{ marginBottom: 14, fontSize: 13 }} onChange={e => setFile(e.target.files[0])} accept=".pdf,.txt,.docx,.pptx,.png,.jpg,.jpeg" />
+        <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} onClick={handleUpload} disabled={loading}>
           {loading ? 'Uploading...' : 'Upload Material'}
         </button>
         {msg && (
-          <p style={{
-            fontSize: 13, marginTop: 10,
-            color: msg.includes('success') ? '#15803d' : msg.includes('wait') ? '#854d0e' : '#dc2626'
-          }}>
+          <p style={{ fontSize: 13, marginTop: 10, color: msg.includes('success') ? '#15803d' : msg.includes('wait') ? '#854d0e' : '#dc2626' }}>
             {msg}
           </p>
         )}
       </div>
 
-      {/* Materials List */}
-      <h3 style={{ fontSize: 16, marginBottom: 12, color: '#1a1a2e' }}>
-        My Uploaded Materials ({materials.length})
-      </h3>
+      <h3 style={{ fontSize: 16, marginBottom: 12, color: '#1a1a2e' }}>My Uploaded Materials ({materials.length})</h3>
 
       {materials.length === 0 ? (
         <div style={styles.emptyBox}>
@@ -125,40 +119,20 @@ export default function Materials() {
               <span style={styles.fileIcon}>{getFileIcon(m.fileType)}</span>
               <div>
                 <p style={styles.itemTitle}>{m.title}</p>
-                <p style={styles.itemSub}>
-                  {m.subject}{m.topic ? ' — ' + m.topic : ''}
-                </p>
-                <p style={styles.itemDate}>
-                  Uploaded: {new Date(m.createdAt).toLocaleDateString()}
-                </p>
+                <p style={styles.itemSub}>{m.subject}{m.topic ? ' — ' + m.topic : ''}</p>
+                <p style={styles.itemDate}>Uploaded: {new Date(m.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
             <div style={styles.itemBtns}>
               {m.fileUrl && (
-                <button
-                  style={styles.viewBtn}
-                  onClick={() => window.open(m.fileUrl, '_blank')}
-                >
-                  👁 View
-                </button>
+                <button style={styles.viewBtn} onClick={() => handleView(m)}>👁 View</button>
               )}
               {m.fileUrl && (
-                <a
-                  href={m.fileUrl}
-                  download={m.title}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.downloadBtn}
-                >
+                <a href={m.fileUrl} download={m.title} target="_blank" rel="noreferrer" style={styles.downloadBtn}>
                   ⬇ Download
                 </a>
               )}
-              <button
-                style={styles.deleteBtn}
-                onClick={() => handleDelete(m._id)}
-              >
-                🗑 Delete
-              </button>
+              <button style={styles.deleteBtn} onClick={() => handleDelete(m._id)}>🗑 Delete</button>
             </div>
           </div>
         ))
@@ -172,7 +146,7 @@ const styles = {
   header:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   title:       { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0 },
   backBtn:     { padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 },
-  uploadBox:   { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
+  uploadBox:   { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
   input:       { width: '100%', padding: 10, marginBottom: 10, borderRadius: 8, border: '1px solid #ddd', fontSize: 13, boxSizing: 'border-box' },
   btn:         { padding: '11px 24px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 14 },
   emptyBox:    { textAlign: 'center', padding: 40, background: '#f8fafc', borderRadius: 14, border: '1px dashed #e2e8f0' },
