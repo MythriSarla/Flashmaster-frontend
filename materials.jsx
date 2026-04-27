@@ -52,7 +52,8 @@ export default function Materials() {
 
     } catch (err) {
       setLoading(false);
-      setMsg(err.response?.data?.msg || 'Upload failed — try again');
+      setMsg(err.response?.data?.error || err.message);
+console.log(err.response?.data);
     }
   };
 
