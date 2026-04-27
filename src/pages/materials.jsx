@@ -38,31 +38,23 @@ export default function Materials() {
     }
   };
 
-  // ✅ View file using Google/Microsoft viewers
   const handleView = (m) => {
     const url = m.fileUrl;
     if (!url) { alert('No file available'); return; }
-
     if (m.fileType === 'application/pdf') {
-      // Open PDF in Google Docs Viewer
       window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`, '_blank');
-
     } else if (
       m.fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
       m.fileType === 'application/vnd.ms-powerpoint' ||
       m.fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
       m.fileType === 'application/msword'
     ) {
-      // Open PPTX / DOCX in Microsoft Office Online Viewer
       window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
-
     } else {
-      // Images, TXT — open directly
       window.open(url, '_blank');
     }
   };
 
-  // ✅ Download file
   const handleDownload = (m) => {
     const url = m.fileUrl;
     if (!url) return;
@@ -82,7 +74,6 @@ export default function Materials() {
         <h2 style={styles.title}>Study Materials</h2>
         <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>Back</button>
       </div>
-
       <div style={styles.uploadBox}>
         <h3 style={{ margin: '0 0 12px', fontSize: 15 }}>Upload New Material</h3>
         <input style={styles.input} placeholder="Subject (e.g. Data Structures)" value={form.subject} onChange={e => setForm({...form, subject: e.target.value})} />
@@ -92,9 +83,7 @@ export default function Materials() {
         <button style={styles.btn} onClick={handleUpload}>Upload Material</button>
         {msg && <p style={{ color: msg.includes('success') ? 'green' : 'red', fontSize: 13, marginTop: 8 }}>{msg}</p>}
       </div>
-
       <h3 style={{ fontSize: 16, marginBottom: 12, color: '#1a1a2e' }}>My Uploaded Materials ({materials.length})</h3>
-
       {materials.length === 0
         ? <p style={{ color: '#999', fontSize: 14 }}>No materials uploaded yet.</p>
         : materials.map(m => (
@@ -102,24 +91,15 @@ export default function Materials() {
             <div>
               <p style={styles.itemTitle}>{m.title}</p>
               <p style={styles.itemSub}>{m.subject}{m.topic ? ' — ' + m.topic : ''}</p>
-              <p style={{ fontSize: 11, color: '#bbb', margin: '2px 0 0' }}>{m.fileType}</p>
             </div>
-
-            {/* ✅ View + Download + Delete buttons */}
             <div style={{ display: 'flex', gap: 8 }}>
               {m.fileUrl && (
-                <button style={styles.viewBtn} onClick={() => handleView(m)}>
-                  👁 View
-                </button>
+                <button style={styles.viewBtn} onClick={() => handleView(m)}>👁 View</button>
               )}
               {m.fileUrl && (
-                <button style={styles.downloadBtn} onClick={() => handleDownload(m)}>
-                  ⬇ Download
-                </button>
+                <button style={styles.downloadBtn} onClick={() => handleDownload(m)}>⬇ Download</button>
               )}
-              <button style={styles.deleteBtn} onClick={() => handleDelete(m._id)}>
-                🗑 Delete
-              </button>
+              <button style={styles.deleteBtn} onClick={() => handleDelete(m._id)}>🗑 Delete</button>
             </div>
           </div>
         ))
