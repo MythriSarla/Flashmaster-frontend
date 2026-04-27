@@ -18,6 +18,9 @@ export default function Materials() {
   };
 
   const handleUpload = async () => {
+    console.log("FORM:", form);   // 👈 ADD THIS LINE
+  console.log("FILE:", file);   // 👈 ADD THIS LINE
+
     if (!form.subject || !form.title) {
       setMsg('Please fill in Subject and Title');
       return;
@@ -70,20 +73,25 @@ export default function Materials() {
       <div style={styles.uploadBox}>
         <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#1a1a2e' }}>Upload New Material</h3>
         <input
-          style={styles.input}
-          placeholder="Subject (e.g. Data Structures)"
-          onChange={e => setForm({...form, subject: e.target.value})}
-        />
-        <input
-          style={styles.input}
-          placeholder="Title (e.g. Linked List Notes)"
-          onChange={e => setForm({...form, title: e.target.value})}
-        />
-        <input
-          style={styles.input}
-          placeholder="Topic (optional)"
-          onChange={e => setForm({...form, topic: e.target.value})}
-        />
+  style={styles.input}
+  placeholder="Subject (e.g. Data Structures)"
+  value={form.subject}
+  onChange={e => setForm({ ...form, subject: e.target.value })}
+/>
+
+<input
+  style={styles.input}
+  placeholder="Title (e.g. Linked List Notes)"
+  value={form.title}
+  onChange={e => setForm({ ...form, title: e.target.value })}
+/>
+
+<input
+  style={styles.input}
+  placeholder="Topic (optional)"
+  value={form.topic}
+  onChange={e => setForm({ ...form, topic: e.target.value })}
+/>
         <input
           type="file"
           style={{ marginBottom: 14, fontSize: 13 }}
