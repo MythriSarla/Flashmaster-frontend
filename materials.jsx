@@ -4,41 +4,52 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Materials() {
   const [materials, setMaterials] = useState([]);
-  const [form, setForm]           = useState({ subject: '', title: '', topic: '' });
-  const [file, setFile]           = useState(null);
-  const [msg,  setMsg]            = useState('');
-  const [loading, setLoading]     = useState(false);
-  const navigate                  = useNavigate();
+  const [form, setForm] = useState({ subject: '', title: '', topic: '' });
+  const [file, setFile] = useState(null);
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => { fetchMaterials(); }, []);
 
   const fetchMaterials = async () => {
-    try { const { data } = await API.get('/materials'); setMaterials(data); }
-    catch { navigate('/login'); }
+    try {
+      const { data } = await API.get('/materials');
+      setMaterials(data);
+    } catch {
+      navigate('/login');
+    }
   };
 
   const handleUpload = async () => {
-    console.log("FORM:", form);   // 👈 ADD THIS LINE
-  console.log("FILE:", file);   // 👈 ADD THIS LINE
+    const subject = form.subject.trim();
+    const title = form.title.trim();
+    const topic = form.topic.trim();
 
-    if (!form.subject || !form.title) {
+    if (!subject || !title) {
       setMsg('Please fill in Subject and Title');
       return;
     }
+
     try {
       setLoading(true);
       setMsg('Uploading... please wait');
+
       const fd = new FormData();
-      fd.append('subject', form.subject);
-      fd.append('title',   form.title);
-      fd.append('topic',   form.topic);
+      fd.append('subject', subject);
+      fd.append('title', title);
+      fd.append('topic', topic);
       if (file) fd.append('file', file);
-      await API.post('/materials', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+
+      // ❗ IMPORTANT: no headers here
+      await API.post('/materials', fd);
+
       setMsg('Material uploaded successfully!');
+      setForm({ subject: '', title: '', topic: '' });
+      setFile(null);
       setLoading(false);
       fetchMaterials();
+
     } catch (err) {
       setLoading(false);
       setMsg(err.response?.data?.msg || 'Upload failed — try again');
@@ -54,11 +65,11 @@ export default function Materials() {
 
   const getFileIcon = (fileType) => {
     if (!fileType) return '📄';
-    if (fileType.includes('pdf'))        return '📕';
-    if (fileType.includes('image'))      return '🖼️';
-    if (fileType.includes('text'))       return '📝';
+    if (fileType.includes('pdf')) return '📕';
+    if (fileType.includes('image')) return '🖼️';
+    if (fileType.includes('text')) return '📝';
     if (fileType.includes('powerpoint') || fileType.includes('pptx')) return '📊';
-    if (fileType.includes('word') || fileType.includes('docx'))       return '📘';
+    if (fileType.includes('word') || fileType.includes('docx')) return '📘';
     return '📄';
   };
 
@@ -71,33 +82,38 @@ export default function Materials() {
 
       {/* Upload Box */}
       <div style={styles.uploadBox}>
-        <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#1a1a2e' }}>Upload New Material</h3>
+        <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#1a1a2e' }}>
+          Upload New Material
+        </h3>
+
         <input
-  style={styles.input}
-  placeholder="Subject (e.g. Data Structures)"
-  value={form.subject}
-  onChange={e => setForm({ ...form, subject: e.target.value })}
-/>
+          style={styles.input}
+          placeholder="Subject (e.g. Data Structures)"
+          value={form.subject}
+          onChange={e => setForm({ ...form, subject: e.target.value })}
+        />
 
-<input
-  style={styles.input}
-  placeholder="Title (e.g. Linked List Notes)"
-  value={form.title}
-  onChange={e => setForm({ ...form, title: e.target.value })}
-/>
+        <input
+          style={styles.input}
+          placeholder="Title (e.g. Linked List Notes)"
+          value={form.title}
+          onChange={e => setForm({ ...form, title: e.target.value })}
+        />
 
-<input
-  style={styles.input}
-  placeholder="Topic (optional)"
-  value={form.topic}
-  onChange={e => setForm({ ...form, topic: e.target.value })}
-/>
+        <input
+          style={styles.input}
+          placeholder="Topic (optional)"
+          value={form.topic}
+          onChange={e => setForm({ ...form, topic: e.target.value })}
+        />
+
         <input
           type="file"
           style={{ marginBottom: 14, fontSize: 13 }}
           onChange={e => setFile(e.target.files[0])}
           accept=".pdf,.txt,.docx,.pptx,.png,.jpg,.jpeg"
         />
+
         <button
           style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }}
           onClick={handleUpload}
@@ -105,10 +121,16 @@ export default function Materials() {
         >
           {loading ? 'Uploading...' : 'Upload Material'}
         </button>
+
         {msg && (
           <p style={{
-            fontSize: 13, marginTop: 10,
-            color: msg.includes('success') ? '#15803d' : msg.includes('wait') ? '#854d0e' : '#dc2626'
+            fontSize: 13,
+            marginTop: 10,
+            color: msg.includes('success')
+              ? '#15803d'
+              : msg.includes('wait')
+              ? '#854d0e'
+              : '#dc2626'
           }}>
             {msg}
           </p>
@@ -124,7 +146,9 @@ export default function Materials() {
         <div style={styles.emptyBox}>
           <p style={{ fontSize: 32, margin: '0 0 8px' }}>📭</p>
           <p style={{ color: '#999', fontSize: 14 }}>No materials uploaded yet.</p>
-          <p style={{ color: '#bbb', fontSize: 13 }}>Upload your first study material above!</p>
+          <p style={{ color: '#bbb', fontSize: 13 }}>
+            Upload your first study material above!
+          </p>
         </div>
       ) : (
         materials.map(m => (
@@ -141,6 +165,7 @@ export default function Materials() {
                 </p>
               </div>
             </div>
+
             <div style={styles.itemBtns}>
               {m.fileUrl && (
                 <button
@@ -150,10 +175,10 @@ export default function Materials() {
                   👁 View
                 </button>
               )}
+
               {m.fileUrl && (
                 <a
-                  href={m.fileUrl}
-                  download={m.title}
+                  href={m.fileUrl + "?fl_attachment=true"}
                   target="_blank"
                   rel="noreferrer"
                   style={styles.downloadBtn}
@@ -161,6 +186,7 @@ export default function Materials() {
                   ⬇ Download
                 </a>
               )}
+
               <button
                 style={styles.deleteBtn}
                 onClick={() => handleDelete(m._id)}
@@ -176,22 +202,22 @@ export default function Materials() {
 }
 
 const styles = {
-  container:   { maxWidth: 800, margin: '0 auto', padding: 32 },
-  header:      { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  title:       { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0 },
-  backBtn:     { padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 },
-  uploadBox:   { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 22, marginBottom: 28, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' },
-  input:       { width: '100%', padding: 10, marginBottom: 10, borderRadius: 8, border: '1px solid #ddd', fontSize: 13, boxSizing: 'border-box' },
-  btn:         { padding: '11px 24px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 14 },
-  emptyBox:    { textAlign: 'center', padding: 40, background: '#f8fafc', borderRadius: 14, border: '1px dashed #e2e8f0' },
-  item:        { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 18px', marginBottom: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' },
-  itemLeft:    { display: 'flex', alignItems: 'center', gap: 14 },
-  fileIcon:    { fontSize: 28 },
-  itemTitle:   { fontWeight: 600, fontSize: 14, margin: 0, color: '#1a1a2e' },
-  itemSub:     { fontSize: 12, color: '#64748b', margin: '3px 0 0' },
-  itemDate:    { fontSize: 11, color: '#94a3b8', margin: '2px 0 0' },
-  itemBtns:    { display: 'flex', gap: 8, alignItems: 'center' },
-  viewBtn:     { padding: '6px 12px', background: '#e0f2fe', color: '#0369a1', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 500 },
-  downloadBtn: { padding: '6px 12px', background: '#dcfce7', color: '#15803d', borderRadius: 6, fontSize: 12, fontWeight: 500, textDecoration: 'none', display: 'inline-block' },
-  deleteBtn:   { padding: '6px 12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 500 },
+  container: { maxWidth: 800, margin: '0 auto', padding: 32 },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  title: { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0 },
+  backBtn: { padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 },
+  uploadBox: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 22, marginBottom: 28 },
+  input: { width: '100%', padding: 10, marginBottom: 10, borderRadius: 8, border: '1px solid #ddd', fontSize: 13 },
+  btn: { padding: '11px 24px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' },
+  emptyBox: { textAlign: 'center', padding: 40, background: '#f8fafc', borderRadius: 14 },
+  item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 18px', marginBottom: 10 },
+  itemLeft: { display: 'flex', alignItems: 'center', gap: 14 },
+  fileIcon: { fontSize: 28 },
+  itemTitle: { fontWeight: 600, fontSize: 14, margin: 0 },
+  itemSub: { fontSize: 12, color: '#64748b' },
+  itemDate: { fontSize: 11, color: '#94a3b8' },
+  itemBtns: { display: 'flex', gap: 8 },
+  viewBtn: { padding: '6px 12px', background: '#e0f2fe', border: 'none', borderRadius: 6 },
+  downloadBtn: { padding: '6px 12px', background: '#dcfce7', borderRadius: 6, textDecoration: 'none' },
+  deleteBtn: { padding: '6px 12px', background: '#fee2e2', border: 'none', borderRadius: 6 }
 };
