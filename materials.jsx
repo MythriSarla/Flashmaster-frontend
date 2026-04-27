@@ -43,13 +43,7 @@ export default function Materials() {
       fd.append('topic', topic);
       if (file) fd.append('file', file);
 
-      console.log("Sending:", subject, title);
-
-      await API.post('/materials', fd, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      await API.post('/materials', fd);
 
       setMsg('Material uploaded successfully!');
       setForm({ subject: '', title: '', topic: '' });
@@ -57,68 +51,61 @@ export default function Materials() {
       fetchMaterials();
 
     } catch (err) {
-      console.log("ERROR:", err.response?.data);
-      setMsg(err.response?.data?.error || err.response?.data?.msg || "Upload failed");
+      setMsg(err.response?.data?.msg || 'Upload failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this material?')) {
+    if (window.confirm('Delete this material?')) {
       await API.delete(`/materials/${id}`);
       fetchMaterials();
     }
   };
 
-  const getFileIcon = (fileType) => {
-    if (!fileType) return '📄';
-    if (fileType.includes('pdf')) return '📕';
-    if (fileType.includes('image')) return '🖼️';
-    if (fileType.includes('text')) return '📝';
-    if (fileType.includes('ppt')) return '📊';
-    if (fileType.includes('doc')) return '📘';
-    return '📄';
+  // 🔥 FIXED VIEW FUNCTION
+  const handleView = (m) => {
+    let url = m.fileUrl;
+
+    // ✅ Convert raw → image for PDF preview
+    if (m.fileType === 'application/pdf') {
+      url = url.replace('/raw/upload/', '/image/upload/');
+    }
+
+    window.open(url, '_blank');
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Study Materials</h2>
-        <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>
-          ← Back
-        </button>
+        <h2>Study Materials</h2>
+        <button onClick={() => navigate('/dashboard')}>Back</button>
       </div>
 
       {/* Upload */}
-      <div style={styles.uploadBox}>
+      <div style={styles.box}>
         <h3>Upload New Material</h3>
 
         <input
-          style={styles.input}
           placeholder="Subject"
           value={form.subject}
           onChange={e => setForm({ ...form, subject: e.target.value })}
         />
 
         <input
-          style={styles.input}
           placeholder="Title"
           value={form.title}
           onChange={e => setForm({ ...form, title: e.target.value })}
         />
 
         <input
-          style={styles.input}
-          placeholder="Topic (optional)"
+          placeholder="Topic"
           value={form.topic}
           onChange={e => setForm({ ...form, topic: e.target.value })}
         />
 
-        <input
-          type="file"
-          onChange={e => setFile(e.target.files[0])}
-        />
+        <input type="file" onChange={e => setFile(e.target.files[0])} />
 
         <button onClick={handleUpload} disabled={loading}>
           {loading ? 'Uploading...' : 'Upload'}
@@ -131,31 +118,30 @@ export default function Materials() {
       <h3>My Materials ({materials.length})</h3>
 
       {materials.length === 0 ? (
-        <p>No materials yet</p>
+        <p>No materials uploaded</p>
       ) : (
         materials.map(m => (
           <div key={m._id} style={styles.item}>
             <div>
-              <span>{getFileIcon(m.fileType)}</span>
-              <p>{m.title}</p>
+              <p><b>{m.title}</b></p>
               <p>{m.subject}</p>
             </div>
 
-            <div>
+            <div style={{ display: 'flex', gap: '10px' }}>
               {m.fileUrl && (
-                <button onClick={() => window.open(m.fileUrl)}>
-                  View
+                <button onClick={() => handleView(m)}>
+                  👁 View
                 </button>
               )}
 
               {m.fileUrl && (
-                <a href={m.fileUrl + "?fl_attachment=true"}>
-                  Download
+                <a href={m.fileUrl + "?fl_attachment=true"} target="_blank" rel="noreferrer">
+                  ⬇ Download
                 </a>
               )}
 
               <button onClick={() => handleDelete(m._id)}>
-                Delete
+                🗑 Delete
               </button>
             </div>
           </div>
@@ -168,7 +154,12 @@ export default function Materials() {
 const styles = {
   container: { padding: 20 },
   header: { display: 'flex', justifyContent: 'space-between' },
-  uploadBox: { marginBottom: 20 },
-  input: { display: 'block', marginBottom: 10 },
-  item: { display: 'flex', justifyContent: 'space-between', marginTop: 10 }
+  box: { marginBottom: 20 },
+  item: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    border: '1px solid #ddd',
+    padding: 10,
+    marginTop: 10
+  }
 };
