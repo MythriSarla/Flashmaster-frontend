@@ -10,7 +10,9 @@ export default function Materials() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => { fetchMaterials(); }, []);
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
 
   const fetchMaterials = async () => {
     try {
@@ -41,21 +43,24 @@ export default function Materials() {
       fd.append('topic', topic);
       if (file) fd.append('file', file);
 
-      await API.post('/materials', fd);
+      console.log("Sending:", subject, title);
+
+      await API.post('/materials', fd, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
 
       setMsg('Material uploaded successfully!');
       setForm({ subject: '', title: '', topic: '' });
       setFile(null);
-      setLoading(false);
       fetchMaterials();
 
     } catch (err) {
-      setLoading(false);
-
-      console.log("FULL ERROR:", err);
-      console.log("BACKEND ERROR:", err.response?.data);
-
+      console.log("ERROR:", err.response?.data);
       setMsg(err.response?.data?.error || err.response?.data?.msg || "Upload failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,8 +76,8 @@ export default function Materials() {
     if (fileType.includes('pdf')) return '📕';
     if (fileType.includes('image')) return '🖼️';
     if (fileType.includes('text')) return '📝';
-    if (fileType.includes('powerpoint') || fileType.includes('pptx')) return '📊';
-    if (fileType.includes('word') || fileType.includes('docx')) return '📘';
+    if (fileType.includes('ppt')) return '📊';
+    if (fileType.includes('doc')) return '📘';
     return '📄';
   };
 
@@ -80,25 +85,25 @@ export default function Materials() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Study Materials</h2>
-        <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>← Back</button>
+        <button style={styles.backBtn} onClick={() => navigate('/dashboard')}>
+          ← Back
+        </button>
       </div>
 
-      {/* Upload Box */}
+      {/* Upload */}
       <div style={styles.uploadBox}>
-        <h3 style={{ margin: '0 0 14px', fontSize: 15, color: '#1a1a2e' }}>
-          Upload New Material
-        </h3>
+        <h3>Upload New Material</h3>
 
         <input
           style={styles.input}
-          placeholder="Subject (e.g. Data Structures)"
+          placeholder="Subject"
           value={form.subject}
           onChange={e => setForm({ ...form, subject: e.target.value })}
         />
 
         <input
           style={styles.input}
-          placeholder="Title (e.g. Linked List Notes)"
+          placeholder="Title"
           value={form.title}
           onChange={e => setForm({ ...form, title: e.target.value })}
         />
@@ -112,89 +117,45 @@ export default function Materials() {
 
         <input
           type="file"
-          style={{ marginBottom: 14, fontSize: 13 }}
           onChange={e => setFile(e.target.files[0])}
-          accept=".pdf,.txt,.docx,.pptx,.png,.jpg,.jpeg"
         />
 
-        <button
-          style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }}
-          onClick={handleUpload}
-          disabled={loading}
-        >
-          {loading ? 'Uploading...' : 'Upload Material'}
+        <button onClick={handleUpload} disabled={loading}>
+          {loading ? 'Uploading...' : 'Upload'}
         </button>
 
-        {msg && (
-          <p style={{
-            fontSize: 13,
-            marginTop: 10,
-            color: msg.includes('success')
-              ? '#15803d'
-              : msg.includes('wait')
-              ? '#854d0e'
-              : '#dc2626'
-          }}>
-            {msg}
-          </p>
-        )}
+        {msg && <p>{msg}</p>}
       </div>
 
-      {/* Materials List */}
-      <h3 style={{ fontSize: 16, marginBottom: 12, color: '#1a1a2e' }}>
-        My Uploaded Materials ({materials.length})
-      </h3>
+      {/* List */}
+      <h3>My Materials ({materials.length})</h3>
 
       {materials.length === 0 ? (
-        <div style={styles.emptyBox}>
-          <p style={{ fontSize: 32, margin: '0 0 8px' }}>📭</p>
-          <p style={{ color: '#999', fontSize: 14 }}>No materials uploaded yet.</p>
-          <p style={{ color: '#bbb', fontSize: 13 }}>
-            Upload your first study material above!
-          </p>
-        </div>
+        <p>No materials yet</p>
       ) : (
         materials.map(m => (
           <div key={m._id} style={styles.item}>
-            <div style={styles.itemLeft}>
-              <span style={styles.fileIcon}>{getFileIcon(m.fileType)}</span>
-              <div>
-                <p style={styles.itemTitle}>{m.title}</p>
-                <p style={styles.itemSub}>
-                  {m.subject}{m.topic ? ' — ' + m.topic : ''}
-                </p>
-                <p style={styles.itemDate}>
-                  Uploaded: {new Date(m.createdAt).toLocaleDateString()}
-                </p>
-              </div>
+            <div>
+              <span>{getFileIcon(m.fileType)}</span>
+              <p>{m.title}</p>
+              <p>{m.subject}</p>
             </div>
 
-            <div style={styles.itemBtns}>
+            <div>
               {m.fileUrl && (
-                <button
-                  style={styles.viewBtn}
-                  onClick={() => window.open(m.fileUrl, '_blank')}
-                >
-                  👁 View
+                <button onClick={() => window.open(m.fileUrl)}>
+                  View
                 </button>
               )}
 
               {m.fileUrl && (
-                <a
-                  href={m.fileUrl + "?fl_attachment=true"}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.downloadBtn}
-                >
-                  ⬇ Download
+                <a href={m.fileUrl + "?fl_attachment=true"}>
+                  Download
                 </a>
               )}
 
-              <button
-                style={styles.deleteBtn}
-                onClick={() => handleDelete(m._id)}
-              >
-                🗑 Delete
+              <button onClick={() => handleDelete(m._id)}>
+                Delete
               </button>
             </div>
           </div>
@@ -205,22 +166,9 @@ export default function Materials() {
 }
 
 const styles = {
-  container: { maxWidth: 800, margin: '0 auto', padding: 32 },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 22, fontWeight: 700, color: '#1a1a2e', margin: 0 },
-  backBtn: { padding: '8px 16px', background: '#f1f5f9', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 },
-  uploadBox: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 22, marginBottom: 28 },
-  input: { width: '100%', padding: 10, marginBottom: 10, borderRadius: 8, border: '1px solid #ddd', fontSize: 13 },
-  btn: { padding: '11px 24px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer' },
-  emptyBox: { textAlign: 'center', padding: 40, background: '#f8fafc', borderRadius: 14 },
-  item: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 18px', marginBottom: 10 },
-  itemLeft: { display: 'flex', alignItems: 'center', gap: 14 },
-  fileIcon: { fontSize: 28 },
-  itemTitle: { fontWeight: 600, fontSize: 14, margin: 0 },
-  itemSub: { fontSize: 12, color: '#64748b' },
-  itemDate: { fontSize: 11, color: '#94a3b8' },
-  itemBtns: { display: 'flex', gap: 8 },
-  viewBtn: { padding: '6px 12px', background: '#e0f2fe', border: 'none', borderRadius: 6 },
-  downloadBtn: { padding: '6px 12px', background: '#dcfce7', borderRadius: 6, textDecoration: 'none' },
-  deleteBtn: { padding: '6px 12px', background: '#fee2e2', border: 'none', borderRadius: 6 }
+  container: { padding: 20 },
+  header: { display: 'flex', justifyContent: 'space-between' },
+  uploadBox: { marginBottom: 20 },
+  input: { display: 'block', marginBottom: 10 },
+  item: { display: 'flex', justifyContent: 'space-between', marginTop: 10 }
 };
