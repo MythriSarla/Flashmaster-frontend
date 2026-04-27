@@ -38,34 +38,17 @@ export default function Materials() {
     }
   };
 
+  // ✅ Open file directly — no viewer needed
   const handleView = (m) => {
-    const url = m.fileUrl;
-    if (!url) { alert('No file available'); return; }
-    if (m.fileType === 'application/pdf') {
-      window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`, '_blank');
-    } else if (
-      m.fileType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-      m.fileType === 'application/vnd.ms-powerpoint' ||
-      m.fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      m.fileType === 'application/msword'
-    ) {
-      window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`, '_blank');
-    } else {
-      window.open(url, '_blank');
-    }
+    if (!m.fileUrl) { alert('No file available'); return; }
+    // Open directly in new tab — browser handles PDF natively
+    window.open(m.fileUrl, '_blank');
   };
 
+  // ✅ Force download
   const handleDownload = (m) => {
-    const url = m.fileUrl;
-    if (!url) return;
-    const downloadUrl = url.includes('?') ? url + '&fl_attachment=true' : url + '?fl_attachment=true';
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = m.title || 'file';
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (!m.fileUrl) return;
+    window.open(m.fileUrl + '?fl_attachment=true', '_blank');
   };
 
   return (
